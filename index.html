@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+<body>
+<script src="https://rawgithub.com/mrdoob/three.js/master/build/three.js"></script>
+  <script>
+    var width=800;
+    var height=800;
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(65, width / height, 0.1, 1000);
+
+    var renderer = new THREE.WebGLRenderer({ alpha: true ,antialias:true});
+    renderer.setClearColor( new THREE.Color(0xffffff),0.0);//背景色
+    renderer.setSize(width, height); // Set the size of the WebGL viewport.
+    document.body.appendChild(renderer.domElement); // Append the WebGL viewport to the DOM.
+
+    //ライティング
+    var directionalLight = new THREE.DirectionalLight( 0xffffff, 2 ); //平行光源（色、強度）
+    directionalLight.position.set(0,0,3);
+    scene.add( directionalLight );
+
+    var texloader = new THREE.TextureLoader();
+    var tex=texloader.load("img/yukichi.jpg");
+
+    var materials = [
+    	new THREE.MeshLambertMaterial({color: 0xe9efc7}),
+    	new THREE.MeshLambertMaterial({color: 0xe9efc7}),
+    	new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("img/yukichi.jpg")}),
+    	new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("img/yukichi.jpg")}),
+    	new THREE.MeshLambertMaterial({color: 0xe9efc7}),
+    	new THREE.MeshLambertMaterial({color: 0xe9efc7})
+    ];
+    var material = new THREE.MeshFaceMaterial(materials);
+    var geometry = new THREE.CubeGeometry(500, 70, 200);
+    var cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
+
+    camera.position.z = 600;
+
+    var render = function () {
+      cube.rotation.x += 0.01;
+      cube.rotation.y += 0.01;
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(render);
+    };
+
+    render();
+  </script>
+</body>
+</html>
