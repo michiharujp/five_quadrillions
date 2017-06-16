@@ -19,19 +19,21 @@
     // ステージを作る
     scene = new THREE.Scene();
 
-    // 地球テクスチャーを準備
+    var loader = new THREE.TextureLoader();
+    yukichi=loader.load('img/yukichi.jpg');
+    // 金テクスチャーを準備
     var materials = [
-      new THREE.MeshLambertMaterial({color: 0xe9efc7}),
-      new THREE.MeshLambertMaterial({color: 0xe9efc7}),
-      new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("img/yukichi.jpg")}),
-      new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("img/yukichi.jpg")}),
-      new THREE.MeshLambertMaterial({color: 0xe9efc7}),
-      new THREE.MeshLambertMaterial({color: 0xe9efc7})
+      new THREE.MeshBasicMaterial({color: 0xe9efc7}),
+      new THREE.MeshBasicMaterial({color: 0xe9efc7}),
+      new THREE.MeshBasicMaterial({map: yukichi}),
+      new THREE.MeshBasicMaterial({map: yukichi}),
+      new THREE.MeshBasicMaterial({color: 0xe9efc7}),
+      new THREE.MeshBasicMaterial({color: 0xe9efc7})
     ];
     var material = new THREE.MeshFaceMaterial(materials);
     var geometry = new THREE.CubeGeometry(150, 120, 60);
 
-    // 地球を作る
+    // 金を作る
     function createEarth() {
       for(var i=0; i<rowNum; i++) {
         for(var j=0; j<colNum; j++) {
@@ -44,12 +46,12 @@
     };
 
     // 平方光源を作る
-    light = new THREE.DirectionalLight(0xffffff, 1.2);
+    light = new THREE.DirectionalLight(0xaaaaaa, 0.01);
     light.position.set(100, 130, 80);
     scene.add(light);
 
     // 環境光源を作る
-    ambient = new THREE.AmbientLight(0x222222);
+    ambient = new THREE.AmbientLight(0xbbbbbb);
     scene.add(ambient);
 
     // カメラを作る
@@ -68,10 +70,6 @@
 
     function render() {
       requestAnimationFrame(render);
-      // theta += 0.1; // 追加
-      // camera.position.x = Math.cos(THREE.Math.degToRad(theta)) * 300; // 追加
-      // camera.position.y = Math.sin(THREE.Math.degToRad(theta)) * 300; // 追加
-      // camera.lookAt(scene.position); // 追加
       controls.update();
       renderer.render(scene, camera);
     }
