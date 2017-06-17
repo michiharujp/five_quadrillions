@@ -5,6 +5,7 @@ canvas { position: absolute; top:0; left:0; pointer-events:auto; width:100%; hei
 #button-wrapper {
   width: 100%;
   height: 100%;
+  margin: auto;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -13,7 +14,9 @@ canvas { position: absolute; top:0; left:0; pointer-events:auto; width:100%; hei
 .hide { display: none; }
 
 .want-btn:hover { cursor: pointer; }
+.want-btn img { width: 100%;}
 .want-btn {
+  width: 50%;
   display: flex;
   position: relative;
   border-bottom: solid 6px #a5a9b1;

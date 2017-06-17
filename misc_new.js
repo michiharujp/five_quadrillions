@@ -1,6 +1,6 @@
 //threejs element
-const WIDTH = 1000;
-const HEIGHT = 700;
+const WIDTH = window.innerWidth;
+const HEIGHT = window.innerHeight;
 let scene, camera, renderer, raycaster, materials, geometry;
 let cube = [];
 let colNum = 20;
@@ -17,16 +17,18 @@ const YUKICHI = {
     textureSide: new THREE.TextureLoader().load('img/yukichiSide.jpg'),
 };
 
-init();
-loop();
-addMoney();
 
 function init() {
+  
+    let btnDom = document.getElementById("button-wrapper");
+    btnDom.parentNode.removeChild(btnDom);
+    document.getElementById("stage").classList.remove('hide');
+
     scene = new THREE.Scene();
 
     //set camera
     camera = new THREE.PerspectiveCamera(60, WIDTH / HEIGHT, 1, 10000);
-    camera.position.set(100, 600, 600);
+    camera.position.set(2000, 1000, 2000);
     camera.lookAt(scene.position);
 
     //set caster
@@ -58,6 +60,9 @@ function init() {
 
     //set controls
     controls = new THREE.OrbitControls(camera);
+
+    loop();
+    addMoney();
 }
 
 function loop() {
