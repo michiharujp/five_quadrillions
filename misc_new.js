@@ -1,10 +1,15 @@
-//定数
-const width = 1000;
-const height = 700;
+//threejs element
+const WIDTH = 1000;
+const HEIGHT = 700;
+let scene, camera, renderer, raycaster, materials, geometry;
+let cube = [];
+let colNum = 20;
+let rowNum = 40;
+let controls;
 
 //yukichi information
-var yukichiAspect = 256 / 536;
-const yukichi = {
+let yukichiAspect = 256 / 536;
+const YUKICHI = {
     width: 150,
     height: Math.trunc(150 * yukichiAspect),
     depth: 60,
@@ -12,33 +17,58 @@ const yukichi = {
     textureSide: new THREE.TextureLoader().load('img/yukichiSide.jpg'),
 };
 
-const colNum = 20;
-const rowNum = 40;
-var a = [150,71,60];
+init();
+loop();
+addMoney();
 
-//変数
-const scene = new THREE.Scene();
-var camera;
-var light;
-var ambient;
-var renderer;
-var cube = [];
-var controls;
+function init() {
+    scene = new THREE.Scene();
 
+    //set camera
+    camera = new THREE.PerspectiveCamera(60, WIDTH / HEIGHT, 1, 10000);
+    camera.position.set(100, 600, 600);
+    camera.lookAt(scene.position);
 
-// テクスチャーの貼り付け
-var materials = [
-    new THREE.MeshLambertMaterial({map: yukichi.textureSide}),
-    new THREE.MeshLambertMaterial({map: yukichi.textureSide}),
-    new THREE.MeshLambertMaterial({map: yukichi.texture}),
-    new THREE.MeshLambertMaterial({map: yukichi.texture}),
-    new THREE.MeshLambertMaterial({map: yukichi.textureSide}),
-    new THREE.MeshLambertMaterial({map: yukichi.textureSide}),
-];
-var geometry = new THREE.BoxGeometry(yukichi.width, yukichi.height, yukichi.depth);
+    //set caster
+    raycaster = new THREE.Raycaster();
 
-// 金を作る
-function createMoney() {
+    //set light
+    scene.add(new THREE.AmbientLight(0xbbbbbb));
+    scene.add(new THREE.DirectionalLight(0xaaaaaa, 0.01));
+
+    //set texture
+    materials = [
+        new THREE.MeshLambertMaterial({map: YUKICHI.textureSide}),
+        new THREE.MeshLambertMaterial({map: YUKICHI.textureSide}),
+        new THREE.MeshLambertMaterial({map: YUKICHI.texture}),
+        new THREE.MeshLambertMaterial({map: YUKICHI.texture}),
+        new THREE.MeshLambertMaterial({map: YUKICHI.textureSide}),
+        new THREE.MeshLambertMaterial({map: YUKICHI.textureSide}),
+    ];
+
+    //set geometry
+    geometry = new THREE.BoxGeometry(YUKICHI.width, YUKICHI.height, YUKICHI.depth);
+
+    //set renderer
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(WIDTH, HEIGHT);
+    renderer.setClearColor(0xefefef);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    document.getElementById('stage').append(renderer.domElement);
+
+    //set controls
+    controls = new THREE.OrbitControls(camera);
+}
+
+function loop() {
+    requestAnimationFrame( loop );
+    controls.update();
+    renderer.clear();
+    renderer.render( scene, camera );
+}
+
+function addMoney() {
+    let money;
     for(i=0; i<rowNum; i++) {
         for(j=0; j<colNum; j++) {
             cube[i] = [];
@@ -48,35 +78,3 @@ function createMoney() {
         }
     }
 };
-
-// 平方光源を作る
-light = new THREE.DirectionalLight(0xaaaaaa, 0.01);
-light.position.set(100, 130, 80);
-scene.add(light);
-
-// 環境光源を作る
-ambient = new THREE.AmbientLight(0xbbbbbb);
-scene.add(ambient);
-
-// カメラを作る
-camera = new THREE.PerspectiveCamera(60, width / height, 1, 10000);
-camera.position.set(100, 600, 600);
-camera.lookAt(scene.position);
-
-controls = new THREE.OrbitControls(camera);
-
-// renderer
-renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(width, height);
-renderer.setClearColor(0xefefef);
-renderer.setPixelRatio(window.devicePixelRatio);
-document.getElementById('stage').append(renderer.domElement);
-
-function render() {
-    requestAnimationFrame(render);
-    controls.update();
-    renderer.render(scene, camera);
-}
-
-createMoney();
-render();
