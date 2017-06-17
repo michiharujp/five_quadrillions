@@ -16,7 +16,6 @@ canvas { position: absolute; top:0; left:0; pointer-events:auto; width:100%; hei
 .want-btn:hover { cursor: pointer; }
 .want-btn img { width: 100%;}
 .want-btn {
-  width: 50%;
   display: flex;
   position: relative;
   border-bottom: solid 6px #a5a9b1;
