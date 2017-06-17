@@ -13,8 +13,11 @@
 
 </head>
 <body>
-<canvas id="canvas"></canvas>
+<canvas id="canvas" class="hide"></canvas>
 <div id='info'></div>
+<div id="button-wrapper">
+  <a class="want-btn" onclick="init()"><img src="img/wantMoney.jpg"></a>
+</div>
 <script>
     // three let
     let camera, scene, light, renderer, canvas, controls;
@@ -34,7 +37,7 @@
     let infos;
 
     // 札束の数
-    const MAX = 1000;
+    const MAX = 3000;
 
     //yukichi information
     let yukichiAspect = 256 / 536;
@@ -46,10 +49,10 @@
         textureSide: new THREE.TextureLoader().load('img/yukichiSide.jpg'),
     };
 
-    init();
-    loop();
-
     function init() {
+        document.getElementById("button-wrapper").textContent = null;
+        document.getElementById("canvas").classList.remove('hide');
+
 
         let n = navigator.userAgent;
         if (n.match(/Android/i) || n.match(/webOS/i) || n.match(/iPhone/i) || n.match(/iPad/i) || n.match(/iPod/i) || n.match(/BlackBerry/i) || n.match(/Windows Phone/i)){ isMobile = true;  antialias = false; document.getElementById("MaxNumber").value = 200; }
@@ -101,7 +104,7 @@
         scene.add( back );
 
         // geometrys
-        geos['box'] = new THREE.BoxGeometry(YUKICHI.width, YUKICHI.height, YUKICHI.depth);
+        geos['box'] = new THREE.CubeGeometry(YUKICHI.width, YUKICHI.height, YUKICHI.depth);
 
         // materials
         materials = [
@@ -119,7 +122,7 @@
 
         // physics
         initOimoPhysics();
-
+        loop();
     }
 
     function loop() {
@@ -164,13 +167,11 @@
 
     function initOimoPhysics(){
 
-        // world setting:( TimeStep, BroadPhaseType, Iterations )
-        // BroadPhaseType can be
-        // 1 : BruteForce
-        // 2 : Sweep and prune , the default
-        // 3 : dynamic bounding volume tree
-
-        world = new OIMO.World({info:true, worldscale:100} );
+        world = new OIMO.World({
+          info:false,
+          worldscale:100,
+          timestep: 1/180
+        });
         populate();
         //setInterval(updateOimoPhysics, 1000/60);
 
