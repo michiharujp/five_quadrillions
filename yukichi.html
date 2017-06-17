@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<title>Oimo.js Basic</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=11" />
+
+<script src="three.js"></script>
+<script src="https://82mou.github.io/threejs/js/OrbitControls.js"></script>
+<script src="oimo.js"></script>
+<link rel="stylesheet" href="css/style.css"></link>
+
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div id='info'></div>
+<script>
+    // three let
+    let camera, scene, light, renderer, canvas, controls;
+    let meshs = [];
+    let grounds = [];
+
+    let isMobile = false;
+    let antialias = true;
+
+    let geos = {}, mats = {};
+
+    //oimo let
+    let world = null, bodys = [];
+    let fps = [0,0,0,0];
+    let ToRad = 0.0174532925199432957;
+    let type = 1;
+    let infos;
+
+    // 札束の数
+    const MAX = 1000;
+
+    //yukichi information
+    let yukichiAspect = 256 / 536;
+    const YUKICHI = {
+        width: 150/100,
+        height: Math.trunc(150/100 * yukichiAspect),
+        depth: 60/100,
+        texture: new THREE.TextureLoader().load('img/yukichi.jpg'),
+        textureSide: new THREE.TextureLoader().load('img/yukichiSide.jpg'),
+    };
+
+    init();
+    loop();
+
+    function init() {
+
+        let n = navigator.userAgent;
+        if (n.match(/Android/i) || n.match(/webOS/i) || n.match(/iPhone/i) || n.match(/iPad/i) || n.match(/iPod/i) || n.match(/BlackBerry/i) || n.match(/Windows Phone/i)){ isMobile = true;  antialias = false; document.getElementById("MaxNumber").value = 200; }
+
+        infos = document.getElementById("info");
+
+        canvas = document.getElementById("canvas");
+
+        camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 5000 );
+        camera.position.set( 0, 160, 400 );
+
+        controls = new THREE.OrbitControls( camera, canvas );
+        controls.target.set(0, 20, 0);
+        controls.update();
+
+        scene = new THREE.Scene();
+
+        renderer = new THREE.WebGLRenderer({ canvas:canvas, precision: "mediump", antialias:antialias });
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
+        let materialType = 'MeshBasicMaterial';
+
+        if(!isMobile){
+
+            scene.add( new THREE.AmbientLight( 0xbbbbbb ) );
+            light = new THREE.DirectionalLight( 0xaaaaaa , 0.01);
+            light.position.set( 100, 130, 80 );
+            light.target.position.set( 0, 0, 0 );
+            light.castShadow = true;
+
+            let d = 300;
+            light.shadow.camera = new THREE.OrthographicCamera( -d, d, d, -d,  500, 1600 );
+            light.shadow.bias = 0.0001;
+            light.shadow.mapSize.width = light.shadow.mapSize.height = 1024;
+
+            scene.add( light );
+
+            materialType = 'MeshPhongMaterial';
+
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFShadowMap;//THREE.BasicShadowMap;
+        }
+
+        // background
+        let buffgeoBack = new THREE.BufferGeometry();
+        buffgeoBack.fromGeometry( new THREE.IcosahedronGeometry(3000,2) );
+        let back = new THREE.Mesh( buffgeoBack, new THREE.MeshBasicMaterial( { map:gradTexture([[0.75,0.6,0.4,0.25], ['#1B1D1E','#3D4143','#72797D', '#b0babf']]), side:THREE.BackSide, depthWrite: false, fog:false }  ));
+        //back.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(15*ToRad));
+        scene.add( back );
+
+        // geometrys
+        geos['box'] = new THREE.BoxGeometry(YUKICHI.width, YUKICHI.height, YUKICHI.depth);
+
+        // materials
+        materials = [
+          new THREE.MeshLambertMaterial({map: YUKICHI.textureSide}),
+          new THREE.MeshLambertMaterial({map: YUKICHI.textureSide}),
+          new THREE.MeshLambertMaterial({map: YUKICHI.texture}),
+          new THREE.MeshLambertMaterial({map: YUKICHI.texture}),
+          new THREE.MeshLambertMaterial({map: YUKICHI.textureSide}),
+          new THREE.MeshLambertMaterial({map: YUKICHI.textureSide}),
+        ];
+        mats['ground'] = new THREE[materialType]( {shininess: 10, color:0x3D4143, transparent:true, opacity:0.5 } );
+
+        // events
+        window.addEventListener( 'resize', onWindowResize, false );
+
+        // physics
+        initOimoPhysics();
+
+    }
+
+    function loop() {
+
+        updateOimoPhysics();
+        renderer.render( scene, camera );
+        requestAnimationFrame( loop );
+
+    }
+
+    function onWindowResize() {
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
+    }
+
+    function addStaticBox(size, position, rotation) {
+        let mesh = new THREE.Mesh( geos.box, mats.ground );
+        mesh.scale.set( size[0], size[1], size[2] );
+        mesh.position.set( position[0], position[1], position[2] );
+        mesh.rotation.set( rotation[0]*ToRad, rotation[1]*ToRad, rotation[2]*ToRad );
+        scene.add( mesh );
+        grounds.push(mesh);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+    }
+
+    function clearMesh(){
+        let i=meshs.length;
+        while (i--) scene.remove(meshs[ i ]);
+        i = grounds.length;
+        while (i--) scene.remove(grounds[ i ]);
+        grounds = [];
+        meshs = [];
+    }
+
+    //----------------------------------
+    //  OIMO PHYSICS
+    //----------------------------------
+
+    function initOimoPhysics(){
+
+        // world setting:( TimeStep, BroadPhaseType, Iterations )
+        // BroadPhaseType can be
+        // 1 : BruteForce
+        // 2 : Sweep and prune , the default
+        // 3 : dynamic bounding volume tree
+
+        world = new OIMO.World({info:true, worldscale:100} );
+        populate();
+        //setInterval(updateOimoPhysics, 1000/60);
+
+    }
+
+    function populate() {
+        // reset old
+        clearMesh();
+        world.clear();
+        bodys=[];
+
+        // ground
+        let ground2 = world.add({size:[400, 40, 400], pos:[0,-10,0], world:world});
+        addStaticBox([400, 40, 400], [0,0,0], [0,0,0]);
+
+        //add object
+        let x, y, z, w, h, d;
+        let i = MAX;
+
+        while (i--){
+            x = -100 + Math.random()*200;
+            z = -100 + Math.random()*200;
+            y = 100 + Math.random()*1000;
+            w = 10 + Math.random()*10;
+            h = 10 + Math.random()*10;
+            d = 10 + Math.random()*10;
+
+
+            bodys[i] = world.add({type:'box', size:[w*0.5,h], pos:[x,y,z],
+            rot:[x,y,z], move:true, world:world});
+            meshs[i] = new THREE.Mesh( geos.box, materials );
+            meshs[i].scale.set( w, h, d );
+
+            //meshs[i].castShadow = true;
+            meshs[i].receiveShadow = true;
+
+          scene.add( meshs[i] );
+        }
+    }
+
+    function updateOimoPhysics() {
+        if(world==null) return;
+
+        world.step();
+
+        let x, y, z, mesh, body, i = bodys.length;
+
+        while (i--){
+            body = bodys[i];
+            mesh = meshs[i];
+
+            if(!body.sleeping){
+
+                mesh.position.copy(body.getPosition());
+                mesh.quaternion.copy(body.getQuaternion());
+                // reset position
+                if(mesh.position.y<-100){
+                    x = -100 + Math.random()*200;
+                    z = -100 + Math.random()*200;
+                    y = 100 + Math.random()*1000;
+                    body.resetPosition(x,y,z);
+                }
+            } else {
+                if(mesh.material.name === 'box') mesh.material = mats.sbox;
+            }
+        }
+
+        infos.innerHTML = world.getInfo();
+    }
+
+
+    function gradTexture(color) {
+        let c = document.createElement("canvas");
+        let ct = c.getContext("2d");
+        let size = 1024;
+        c.width = 16; c.height = size;
+        let gradient = ct.createLinearGradient(0,0,0,size);
+        let i = color[0].length;
+        while(i--){ gradient.addColorStop(color[0][i],color[1][i]); }
+        ct.fillStyle = gradient;
+        ct.fillRect(0,0,16,size);
+        let texture = new THREE.Texture(c);
+        texture.needsUpdate = true;
+        return texture;
+    }
+</script>
+</body>
+</html>
