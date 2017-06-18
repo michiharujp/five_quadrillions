@@ -1,15 +1,18 @@
 //threejs element
-
-
 const WIDTH = window.innerWidth;
 const HEIGHT = window.innerHeight;
+const FALL_HEIGHT = 1000;
+const AREA = 2000;
+let monNum = 0;
+let monStep = 25;
 let scene, camera, renderer, materials, geometry;
 let mouse, raycaster, isShiftDown = false;
 let cube = [];
-let colNum = 20;
-let rowNum = 40;
-let layer = 0;
 let score = 0, scoreStep = 2500;
+let counter = 0;
+
+let position = [];
+let rotation = [];
 let controls;
 
 //yukichi information
@@ -17,7 +20,7 @@ let yukichiAspect = 256 / 536;
 const YUKICHI = {
     width: 150,
     height: 10,
-    depth: Math.trunc(150 * yukichiAspect)-10,
+    depth: Math.trunc(150 * yukichiAspect),
     texture: new THREE.TextureLoader().load('img/yukichi.jpg'),
     textureSide: new THREE.TextureLoader().load('img/yukichiSide.jpg'),
 };
@@ -34,14 +37,14 @@ function init() {
     //set camera
     camera = new THREE.PerspectiveCamera(60, WIDTH / HEIGHT, 1, 10000);
     camera.position.set(2000, 1000, 2000);
-    camera.lookAt(new THREE.Vector3());
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     //set caster
     raycaster = new THREE.Raycaster();
 
     //set light
     scene.add(new THREE.AmbientLight(0xbbbbbb));
-    scene.add(new THREE.DirectionalLight(0xaaaaaa, 0.01));
+    scene.add(new THREE.SpotLight(0xffffff));
 
     //set texture
     materials = [
@@ -66,47 +69,40 @@ function init() {
     //set controls
     controls = new THREE.OrbitControls(camera);
 
-    loop();
     addMoney();
-    //addGrid();
+    loop();
 }
 
+
 function loop() {
-    requestAnimationFrame( loop );
+    for(i=0; i < cube.length; i++) {
+        if(cube[i].position.y < -AREA + counter * 10) {continue;}
+        cube[i].rotation.y += 0.01;
+        cube[i].position.y -= 50;
+    }
     controls.update();
     renderer.clear();
     renderer.render( scene, camera );
+    requestAnimationFrame(loop);
 }
 
 function addMoney() {
-    layer += YUKICHI.height;
-    score += scoreStep;
-    for(i=0; i<rowNum; i++) {
-        for(j=0; j<colNum; j++) {
-            cube[i] = [];
-            cube[i][j] = new THREE.Mesh(geometry, materials);
-            cube[i][j].position.set(-(colNum-1)*150/2 + j*150, layer, -(rowNum-1)*60/2 + i*60);
-            scene.add(cube[i][j]);
-        }
+    counter++;
+    score = scoreStep * counter;
+    for(i = monNum; i < monNum + monStep; i++) {
+        position[0] = Math.floor(Math.random() * AREA * 2) - AREA;
+        position[1] = Math.floor(Math.random() * 200) + FALL_HEIGHT;
+        position[2] = Math.floor(Math.random() * AREA * 2) - AREA;
+        rotation[0] = Math.random() * Math.PI;
+        rotation[1] = Math.random() * Math.PI;
+        rotation[2] = Math.random() * Math.PI;
+        cube[i] = new THREE.Mesh(geometry, materials);
+        console.log(position);
+        console.log(rotation);
+        cube[i].position.set(position[0],position[1],position[2]);
+        cube[i].rotation.set(rotation[0],rotation[1],rotation[2]);
+        scene.add(cube[i]);
     }
     document.getElementById("score").textContent = Math.trunc(score/10000) ? score/10000 + "億円" : score + "万円";
-}
-
-//故障中
-function addGrid() {
-    let sizeW = YUKICHI.width * colNum;
-    let sizeH = YUKICHI.depth * rowNum;
-    let widthStep = YUKICHI.width;
-    let depthStep = YUKICHI.depth;
-
-    let gridGeo = new THREE.Geometry();
-    for ( var i = - sizeW, j = -sizeH; i <= sizeW && j <= sizeH; i += widthStep, j += depthStep ) {
-        gridGeo.vertices.push( new THREE.Vector3( - sizeW, 0, i ) );
-        gridGeo.vertices.push( new THREE.Vector3(   sizeW, 0, i ) );
-        gridGeo.vertices.push( new THREE.Vector3( j, 0, - sizeH ) );
-        gridGeo.vertices.push( new THREE.Vector3( j, 0,   sizeH ) );
-    }
-    let gridMat = new THREE.LineBasicMaterial( { color: 0x000000, opacity: 0.2, transparent: true } );
-    let line = new THREE.LineSegments( gridGeo, gridMat );
-    scene.add(line);
+    monNum += monStep;
 }
