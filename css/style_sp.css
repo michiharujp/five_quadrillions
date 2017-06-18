@@ -1,6 +1,6 @@
 html, body { height: 100%;}
 body { margin: 0; padding: 0; }
-
+input { width: 100%; }
 .hide { display: none; }
 #button-wrapper {
   width: 100%;
@@ -12,8 +12,6 @@ body { margin: 0; padding: 0; }
 #add-money {
     width: 100%;
     background-color: black;
-    display: flex;
-    justify-content: center;
     position: fixed;
     top: 0;
     left: 0;
@@ -30,5 +28,5 @@ body { margin: 0; padding: 0; }
     position: fixed;
     left: 0;
     bottom: 0;
-    font-size: 3.5rem;
+    font-size: 2rem;
 }
