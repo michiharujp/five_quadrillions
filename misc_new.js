@@ -1,30 +1,26 @@
 //threejs element
 const WIDTH = window.innerWidth;
 const HEIGHT = window.innerHeight;
-const FALL_HEIGHT = 1000;
+const FALL_HEIGHT = 2000;
 const AREA = 2000;
 let monNum = 0;
 let monStep = 25;
 let scene, camera, renderer, materials, geometry;
-let mouse, raycaster, isShiftDown = false;
 let cube = [];
 let score = 0, scoreStep = 2500;
 let counter = 0;
-
 let position = [];
 let rotation = [];
 let controls;
 
 //yukichi information
-let yukichiAspect = 256 / 536;
-const YUKICHI = {
-    width: 150,
+let YUKICHI = {
+    width : 150,
     height: 10,
-    depth: Math.trunc(150 * yukichiAspect),
+    depth: Math.trunc(150 * 256 / 536),
     texture: new THREE.TextureLoader().load('img/yukichi.jpg'),
     textureSide: new THREE.TextureLoader().load('img/yukichiSide.jpg'),
 };
-
 
 function init() {
 
@@ -38,9 +34,6 @@ function init() {
     camera = new THREE.PerspectiveCamera(60, WIDTH / HEIGHT, 1, 10000);
     camera.position.set(2000, 1000, 2000);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
-
-    //set caster
-    raycaster = new THREE.Raycaster();
 
     //set light
     scene.add(new THREE.AmbientLight(0xbbbbbb));
@@ -63,7 +56,6 @@ function init() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(WIDTH, HEIGHT);
     renderer.setClearColor(0xefefef);
-    renderer.setPixelRatio(window.devicePixelRatio);
     document.getElementById('stage').append(renderer.domElement);
 
     //set controls
@@ -73,10 +65,9 @@ function init() {
     loop();
 }
 
-
 function loop() {
     for(i=0; i < cube.length; i++) {
-        if(cube[i].position.y < -AREA + counter * 10) {continue;}
+        if(cube[i].position.y < -AREA) {continue;}
         cube[i].rotation.y += 0.01;
         cube[i].position.y -= 50;
     }
@@ -97,8 +88,6 @@ function addMoney() {
         rotation[1] = Math.random() * Math.PI;
         rotation[2] = Math.random() * Math.PI;
         cube[i] = new THREE.Mesh(geometry, materials);
-        console.log(position);
-        console.log(rotation);
         cube[i].position.set(position[0],position[1],position[2]);
         cube[i].rotation.set(rotation[0],rotation[1],rotation[2]);
         scene.add(cube[i]);
