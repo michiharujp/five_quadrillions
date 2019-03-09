@@ -4,3 +4,7 @@
 ## 使用するもの
 * three.js
 * oimo.js
+
+## 動作例
+
+[Imgur](https://i.imgur.com/zszhjnY.jpg)
