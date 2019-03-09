@@ -7,4 +7,4 @@
 
 ## 動作例
 
-[Imgur](https://i.imgur.com/zszhjnY.jpg)
+![Imgur](https://i.imgur.com/zszhjnY.jpg)
